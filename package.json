@@ -7,7 +7,10 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "lintswapi": "eslint src/swapi.js",
+    "lintswapi:fix": "eslint src/swapi.js --fix"
+
   },
   "repository": {
     "type": "git",
