@@ -1,0 +1,29 @@
+{
+  "name": "refatoracao-starwars-api",
+  "version": "1.0.0",
+  "main": "eslint.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yurimq64/refatoracao-starwars-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yurimq64/refatoracao-starwars-api/issues"
+  },
+  "homepage": "https://github.com/yurimq64/refatoracao-starwars-api#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.27.0"
+  }
+}
