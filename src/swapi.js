@@ -51,64 +51,157 @@ async function f(x) {
     });
 }
 
-// Global variables for tracking state
-let lastId = 1;
-let fetch_count = 0;
-let total_size = 0;
 
-async function p() {
+// Global variables for tracking state
+let vehicle_id_search = 1;
+let total_size = 0;
+let fetch_count = 0;
+
+async function printInfo() {
+    let search_character = 1;
+    let search_vehicle = 1;
+
+    await printCharacterInfo(search_character);
+    await printSpaceshipInfo();
+    await printLargestPlanetsInfo();
+    await printStarWarsMoviesInOrder();
+    await printVehicleInfo(search_vehicle);
+
+    search_character++;
+    search_vehicle++;
+
+    
+
     try {
         if (debug_mode) console.log("Starting data fetch...");
         fetch_count++;
         
-        const p1 = await f(`people/${  lastId}`);
-        total_size += JSON.stringify(p1).length;
-        console.log("Character:", p1.name);
-        console.log("Height:", p1.height);
-        console.log("Mass:", p1.mass);
-        console.log("Birthday:", p1.birth_year);
-        if (p1.films && p1.films.length > 0) {
-            console.log("Appears in", p1.films.length, "films");
+                
+        // Print stats
+        if (debug_mode) {
+            console.log("\nStats:");
+            console.log("API Calls:", fetch_count);
+            console.log("Cache Size:", Object.keys(cache).length);
+            console.log("Total Data Size:", total_size, "bytes");
+            console.log("Error Count:", err_count);
         }
         
-        const s1 = await f("starships/?page=1");
-        total_size += JSON.stringify(s1).length;
-        console.log("\nTotal Starships:", s1.count);
+    } catch (e) {
+        console.error("Error:", e.message);
+        err_count++;
+    }
+}
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////
+
+
+
+//////////////////////////////////
+
+async function printCharacterInfo(character_id_search) {
+
+    try {
+        if (debug_mode) console.log("Starting data fetch...");
+                             
+        const mainCharacter = await f(`people/${character_id_search}`);
+        total_size += JSON.stringify(mainCharacter).length;
+
+        console.log("Character:", mainCharacter.name);
+        console.log("Height:", mainCharacter.height);
+        console.log("Mass:", mainCharacter.mass);
+        console.log("Birthday:", mainCharacter.birth_year);
+
+        if (mainCharacter.films && mainCharacter.films.length > 0) {
+            console.log("Appears in", mainCharacter.films.length, "films");
+        }
+        
+        
+           
+    } catch (e) {
+        console.error("Error:", e.message);
+        err_count++;
+    }
+}
+
+
+///////////////////////
+
+
+
+async function printSpaceshipInfo() {
+
+    let MAX_SPACESHIPS_TO_PRINT = 3;
+
+    try {
+        if (debug_mode) console.log("Starting data fetch...");
+        fetch_count++;
+        
+        const spaceshipsList = await f("starships/?page=1");
+        total_size += JSON.stringify(spaceshipsList).length;
+        console.log("\nTotal Starships:", spaceshipsList.count);
         
         // Print first 3 starships with details
-        for (let i = 0; i < 3; i++) {
-            if (i < s1.results.length) {
-                const s = s1.results[i];
+        for (let i = 0; i < MAX_SPACESHIPS_TO_PRINT; i++) {
+            if (i < spaceshipsList.results.length) {
+                const spaceship = spaceshipsList.results[i];
                 console.log(`\nStarship ${i+1}:`);
-                console.log("Name:", s.name);
-                console.log("Model:", s.model);
-                console.log("Manufacturer:", s.manufacturer);
-                console.log("Cost:", s.cost_in_credits !== "unknown" ? `${s.cost_in_credits  } credits` : "unknown");
-                console.log("Speed:", s.max_atmosphering_speed);
-                console.log("Hyperdrive Rating:", s.hyperdrive_rating);
-                if (s.pilots && s.pilots.length > 0) {
-                    console.log("Pilots:", s.pilots.length);
+                console.log("Name:", spaceship.name);
+                console.log("Model:", spaceship.model);
+                console.log("Manufacturer:", spaceship.manufacturer);
+                console.log("Cost:", spaceship.cost_in_credits !== "unknown" ? `${spaceship.cost_in_credits  } credits` : "unknown");
+                console.log("Speed:", spaceship.max_atmosphering_speed);
+                console.log("Hyperdrive Rating:", spaceship.hyperdrive_rating);
+                if (spaceship.pilots && spaceship.pilots.length > 0) {
+                    console.log("Pilots:", spaceship.pilots.length);
                 }
             }
         }
+           
+    } catch (e) {
+        console.error("Error:", e.message);
+        err_count++;
+    }
+}
+
+///////////////////////////////////
+
+async function printLargestPlanetsInfo() {
+// Find planets with population > 1000000000 and diameter > 10000
+
+        let POPULATION_MAX = 1000000000;
+        let DIAMETER_MIN = 10000;
         
-        // Find planets with population > 1000000000 and diameter > 10000
-        const planets = await f("planets/?page=1");
-        total_size += JSON.stringify(planets).length;
-        console.log("\nLarge populated planets:");
-        for (let i = 0; i < planets.results.length; i++) {
-            const p = planets.results[i];
-            if (p.population !== "unknown" && parseInt(p.population) > 1000000000 && 
-                p.diameter !== "unknown" && parseInt(p.diameter) > 10000) {
-                console.log(p.name, "- Pop:", p.population, "- Diameter:", p.diameter, "- Climate:", p.climate);
+        const planetList = await f("planets/?page=1");
+        total_size += JSON.stringify(planetList).length;
+
+        console.log("\nLarge populated planRESTets:");
+
+        for (let i = 0; i < planetList.results.length; i++) {
+            const planetData = planetList.results[i];
+
+            if (planetData.population !== "unknown" && parseInt(planetData.population) > POPULATION_MAX && 
+                planetData.diameter !== "unknown" && parseInt(planetData.diameter) > DIAMETER_MIN) {
+                console.log(planetData.name, "- Pop:", planetData.population, "- Diameter:", planetData.diameter, "- Climate:", planetData.climate);
                 // Check if it appears in any films
-                if (p.films && p.films.length > 0) {
-                    console.log(`  Appears in ${p.films.length} films`);
+                if (planetData.films && planetData.films.length > 0) {
+                    console.log(`  Appears in ${planetData.films.length} films`);
                 }
             }
         }
-        
-        // Get films and sort by release date, then print details
+}
+
+
+///////////////////////////////////////
+
+async function printStarWarsMoviesInOrder() {
+
         const films = await f("films/");
         total_size += JSON.stringify(films).length;
         const filmList = films.results;
@@ -125,10 +218,17 @@ async function p() {
             console.log(`   Characters: ${film.characters.length}`);
             console.log(`   Planets: ${film.planets.length}`);
         }
-        
-        // Get a vehicle and display details
-        if (lastId <= 4) {
-            const vehicle = await f(`vehicles/${  lastId}`);
+}
+
+
+///////////////////////////////////////////////
+
+async function printVehicleInfo(vehicle_id_search){
+    let max_vehicle_search_allowed = 4;
+
+    // Get a vehicle and display details
+        if (vehicle_id_search <= max_vehicle_search_allowed) {
+            const vehicle = await f(`vehicles/${  vehicle_id_search}`);
             total_size += JSON.stringify(vehicle).length;
             console.log("\nFeatured Vehicle:");
             console.log("Name:", vehicle.name);
@@ -138,22 +238,8 @@ async function p() {
             console.log("Length:", vehicle.length);
             console.log("Crew Required:", vehicle.crew);
             console.log("Passengers:", vehicle.passengers);
-            lastId++;  // Increment for next call
+            
         }
-        
-        // Print stats
-        if (debug_mode) {
-            console.log("\nStats:");
-            console.log("API Calls:", fetch_count);
-            console.log("Cache Size:", Object.keys(cache).length);
-            console.log("Total Data Size:", total_size, "bytes");
-            console.log("Error Count:", err_count);
-        }
-        
-    } catch (e) {
-        console.error("Error:", e.message);
-        err_count++;
-    }
 }
 
 // Process command line arguments
@@ -213,7 +299,7 @@ const server = http.createServer((req, res) => {
             </html>
         `);
     } else if (req.url === "/api") {
-        p();
+        printInfo();
         res.writeHead(200, { "Content-Type": "text/plain" });
         res.end("Check server console for results");
     } else if (req.url === "/stats") {
