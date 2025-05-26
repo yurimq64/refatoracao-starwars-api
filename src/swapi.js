@@ -1,53 +1,81 @@
 // StarWars API Code
 // This code intentionally violates clean code principles for refactoring practice
 
-const http = require("http");
-const https = require("https");
+const http = require("http"); 
+const https = require("https"); 
 
-const cache = {};
-let debug_mode = true;
-let timeout = 5000;
-let err_count = 0;
+const cache = {}; 
+let debug_mode = true; 
+let timeout = 5000; 
+let err_count = 0; 
 
-async function f(x) {
-    if (cache[x]) {
-        if (debug_mode) console.log("Using cached data for", x);
-        return cache[x];
+async function fetchFromAPI(pageToSearch) { 
+
+    if (cache[pageToSearch]) { 
+        if (debug_mode) console.log("Using cached data for", pageToSearch); 
+        return cache[pageToSearch]; 
     }
-    
-    return new Promise((r, j) => {
-        let d = "";
-        const req = https.get(`https://swapi.dev/api/${x}`, { rejectUnauthorized: false }, (res) => {
-            if (res.statusCode >= 400) {
-                err_count++;
-                return j(new Error(`Request failed with status code ${res.statusCode}`));
-            }
+
+    return new Promise((searchResultsResponse, errorCatcher) => { 
+            const requester = https.get(`https://swapi.dev/api/${pageToSearch}`,
+            { rejectUnauthorized: false }, (pageHttpResponse) => { 
             
-            res.on("data", (chunk) => { d += chunk; });
-            res.on("end", () => {
-                try {
-                    const p = JSON.parse(d);
-                    cache[x] = p; // Cache the result
-                    r(p);
-                    if (debug_mode) {
-                        console.log(`Successfully fetched data for ${x}`);
-                        console.log(`Cache size: ${Object.keys(cache).length}`);
-                    }
-                } catch (e) {
-                    err_count++;
-                    j(e);
-                }
+            
+            
+                if (pageHttpResponse.statusCode >= 400) { 
+                err_count++; 
+                return errorCatcher(new Error(`Request failed with status code ${pageHttpResponse.statusCode}`)); 
+            }
+           responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, errorCatcher)
             });
-        }).on("error", (e) => {
+
+         requester.on("error", (e) => { 
             err_count++;
-            j(e);
+            errorCatcher(e);
         });
-        
-        req.setTimeout(timeout, () => {
-            req.abort();
+
+        requester.setTimeout(timeout, () => {
+            requester.abort(); 
             err_count++;
-            j(new Error(`Request timeout for ${x}`));
+            errorCatcher(new Error(`Request timeout for ${pageToSearch}`)); 
         });
+    });
+}
+
+
+
+
+
+function responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, errorCatcher) { 
+    let dataBitsCacher = ""; 
+
+
+    pageHttpResponse.on("data", (chunk) => { 
+        dataBitsCacher += chunk;   });
+
+
+    pageHttpResponse.on("end", () => { 
+
+        try {
+            const starWarsInfoPages = JSON.parse(dataBitsCacher); 
+            cache[pageToSearch] = starWarsInfoPages; 
+            searchResultsResponse(starWarsInfoPages); 
+
+
+            if (debug_mode) {
+                console.log(`Successfully fetched data for ${pageToSearch}`); 
+                console.log(`Cache size: ${Object.keys(cache).length}`);}
+
+
+        } catch (e) { 
+            err_count++;
+            errorCatcher(e);}
+
+    });
+
+    pageHttpResponse.on("error", (e) => { 
+        err_count++;
+        errorCatcher(e);
     });
 }
 
@@ -110,7 +138,7 @@ async function printCharacterInfo(character_id_search) {
     try {
         if (debug_mode) console.log("Starting data fetch...");
                              
-        const mainCharacter = await f(`people/${character_id_search}`);
+        const mainCharacter = await fetchFromAPI(`people/${character_id_search}`);
         total_size += JSON.stringify(mainCharacter).length;
 
         console.log("Character:", mainCharacter.name);
@@ -143,7 +171,7 @@ async function printSpaceshipInfo() {
         if (debug_mode) console.log("Starting data fetch...");
         fetch_count++;
         
-        const spaceshipsList = await f("starships/?page=1");
+        const spaceshipsList = await fetchFromAPI("starships/?page=1");
         total_size += JSON.stringify(spaceshipsList).length;
         console.log("\nTotal Starships:", spaceshipsList.count);
         
@@ -178,10 +206,10 @@ async function printLargestPlanetsInfo() {
         let POPULATION_MAX = 1000000000;
         let DIAMETER_MIN = 10000;
         
-        const planetList = await f("planets/?page=1");
+        const planetList = await fetchFromAPI("planets/?page=1");
         total_size += JSON.stringify(planetList).length;
 
-        console.log("\nLarge populated planRESTets:");
+        console.log("\nLarge populated planets:");
 
         for (let i = 0; i < planetList.results.length; i++) {
             const planetData = planetList.results[i];
@@ -202,7 +230,7 @@ async function printLargestPlanetsInfo() {
 
 async function printStarWarsMoviesInOrder() {
 
-        const films = await f("films/");
+        const films = await fetchFromAPI("films/");
         total_size += JSON.stringify(films).length;
         const filmList = films.results;
         filmList.sort((a, b) => {
@@ -228,7 +256,7 @@ async function printVehicleInfo(vehicle_id_search){
 
     // Get a vehicle and display details
         if (vehicle_id_search <= max_vehicle_search_allowed) {
-            const vehicle = await f(`vehicles/${  vehicle_id_search}`);
+            const vehicle = await fetchFromAPI(`vehicles/${  vehicle_id_search}`);
             total_size += JSON.stringify(vehicle).length;
             console.log("\nFeatured Vehicle:");
             console.log("Name:", vehicle.name);
