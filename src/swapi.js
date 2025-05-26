@@ -17,19 +17,19 @@ async function fetchFromAPI(pageToSearch) {
     }
 
     return new Promise((searchResultsResponse, errorCatcher) => { 
-            const requester = https.get(`https://swapi.dev/api/${pageToSearch}`,
+        const requester = https.get(`https://swapi.dev/api/${pageToSearch}`,
             { rejectUnauthorized: false }, (pageHttpResponse) => { 
             
             
             
                 if (pageHttpResponse.statusCode >= 400) { 
-                err_count++; 
-                return errorCatcher(new Error(`Request failed with status code ${pageHttpResponse.statusCode}`)); 
-            }
-           responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, errorCatcher)
+                    err_count++; 
+                    return errorCatcher(new Error(`Request failed with status code ${pageHttpResponse.statusCode}`)); 
+                }
+                responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, errorCatcher);
             });
 
-         requester.on("error", (e) => { 
+        requester.on("error", (e) => { 
             err_count++;
             errorCatcher(e);
         });
@@ -81,7 +81,7 @@ function responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, 
 
 
 // Global variables for tracking state
-let vehicle_id_search = 1;
+const vehicle_id_search = 1;
 let total_size = 0;
 let fetch_count = 0;
 
@@ -165,7 +165,7 @@ async function printCharacterInfo(character_id_search) {
 
 async function printSpaceshipInfo() {
 
-    let MAX_SPACESHIPS_TO_PRINT = 3;
+    const MAX_SPACESHIPS_TO_PRINT = 3;
 
     try {
         if (debug_mode) console.log("Starting data fetch...");
@@ -203,26 +203,26 @@ async function printSpaceshipInfo() {
 async function printLargestPlanetsInfo() {
 // Find planets with population > 1000000000 and diameter > 10000
 
-        let POPULATION_MAX = 1000000000;
-        let DIAMETER_MIN = 10000;
+    const POPULATION_MAX = 1000000000;
+    const DIAMETER_MIN = 10000;
         
-        const planetList = await fetchFromAPI("planets/?page=1");
-        total_size += JSON.stringify(planetList).length;
+    const planetList = await fetchFromAPI("planets/?page=1");
+    total_size += JSON.stringify(planetList).length;
 
-        console.log("\nLarge populated planets:");
+    console.log("\nLarge populated planets:");
 
-        for (let i = 0; i < planetList.results.length; i++) {
-            const planetData = planetList.results[i];
+    for (let i = 0; i < planetList.results.length; i++) {
+        const planetData = planetList.results[i];
 
-            if (planetData.population !== "unknown" && parseInt(planetData.population) > POPULATION_MAX && 
+        if (planetData.population !== "unknown" && parseInt(planetData.population) > POPULATION_MAX && 
                 planetData.diameter !== "unknown" && parseInt(planetData.diameter) > DIAMETER_MIN) {
-                console.log(planetData.name, "- Pop:", planetData.population, "- Diameter:", planetData.diameter, "- Climate:", planetData.climate);
-                // Check if it appears in any films
-                if (planetData.films && planetData.films.length > 0) {
-                    console.log(`  Appears in ${planetData.films.length} films`);
-                }
+            console.log(planetData.name, "- Pop:", planetData.population, "- Diameter:", planetData.diameter, "- Climate:", planetData.climate);
+            // Check if it appears in any films
+            if (planetData.films && planetData.films.length > 0) {
+                console.log(`  Appears in ${planetData.films.length} films`);
             }
         }
+    }
 }
 
 
@@ -230,44 +230,44 @@ async function printLargestPlanetsInfo() {
 
 async function printStarWarsMoviesInOrder() {
 
-        const films = await fetchFromAPI("films/");
-        total_size += JSON.stringify(films).length;
-        const filmList = films.results;
-        filmList.sort((a, b) => {
-            return new Date(a.release_date) - new Date(b.release_date);
-        });
+    const films = await fetchFromAPI("films/");
+    total_size += JSON.stringify(films).length;
+    const filmList = films.results;
+    filmList.sort((a, b) => {
+        return new Date(a.release_date) - new Date(b.release_date);
+    });
         
-        console.log("\nStar Wars Films in chronological order:");
-        for (let i = 0; i < filmList.length; i++) {
-            const film = filmList[i];
-            console.log(`${i+1}. ${film.title} (${film.release_date})`);
-            console.log(`   Director: ${film.director}`);
-            console.log(`   Producer: ${film.producer}`);
-            console.log(`   Characters: ${film.characters.length}`);
-            console.log(`   Planets: ${film.planets.length}`);
-        }
+    console.log("\nStar Wars Films in chronological order:");
+    for (let i = 0; i < filmList.length; i++) {
+        const film = filmList[i];
+        console.log(`${i+1}. ${film.title} (${film.release_date})`);
+        console.log(`   Director: ${film.director}`);
+        console.log(`   Producer: ${film.producer}`);
+        console.log(`   Characters: ${film.characters.length}`);
+        console.log(`   Planets: ${film.planets.length}`);
+    }
 }
 
 
 ///////////////////////////////////////////////
 
 async function printVehicleInfo(vehicle_id_search){
-    let max_vehicle_search_allowed = 4;
+    const max_vehicle_search_allowed = 4;
 
     // Get a vehicle and display details
-        if (vehicle_id_search <= max_vehicle_search_allowed) {
-            const vehicle = await fetchFromAPI(`vehicles/${  vehicle_id_search}`);
-            total_size += JSON.stringify(vehicle).length;
-            console.log("\nFeatured Vehicle:");
-            console.log("Name:", vehicle.name);
-            console.log("Model:", vehicle.model);
-            console.log("Manufacturer:", vehicle.manufacturer);
-            console.log("Cost:", vehicle.cost_in_credits, "credits");
-            console.log("Length:", vehicle.length);
-            console.log("Crew Required:", vehicle.crew);
-            console.log("Passengers:", vehicle.passengers);
+    if (vehicle_id_search <= max_vehicle_search_allowed) {
+        const vehicle = await fetchFromAPI(`vehicles/${  vehicle_id_search}`);
+        total_size += JSON.stringify(vehicle).length;
+        console.log("\nFeatured Vehicle:");
+        console.log("Name:", vehicle.name);
+        console.log("Model:", vehicle.model);
+        console.log("Manufacturer:", vehicle.manufacturer);
+        console.log("Cost:", vehicle.cost_in_credits, "credits");
+        console.log("Length:", vehicle.length);
+        console.log("Crew Required:", vehicle.crew);
+        console.log("Passengers:", vehicle.passengers);
             
-        }
+    }
 }
 
 // Process command line arguments
