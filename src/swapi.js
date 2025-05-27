@@ -1,11 +1,10 @@
-
+/* global process */
 // StarWars API Code
 // This code intentionally violates clean code principles for refactoring practice
 
 const http = require("http");
 const https = require("https");
 
-// Constants for Magic Numbers
 const HTTP_STATUS_OK = 200;
 const HTTP_STATUS_BAD_REQUEST = 400;
 const HTTP_STATUS_NOT_FOUND = 404;
@@ -45,10 +44,11 @@ async function fetchFromAPI(pageToSearch) {
                     return errorCatcher(new Error(`Request failed with status code ${pageHttpResponse.statusCode}`));
                 }
                 responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, errorCatcher);
-                return; // Satisfaz consistent-return
+                return; // Satisfaz consistent-return para esta função de callback do https.get
             });
         setupRequestEvents(requester, pageToSearch, errorCatcher, timeout);
     });
+    
 }
 
 function handleSuccessfulResponseEnd(dataBitsCacher, pageToSearch, searchResultsResponse) {
@@ -63,9 +63,9 @@ function handleSuccessfulResponseEnd(dataBitsCacher, pageToSearch, searchResults
 
 function responseHandler(pageHttpResponse, pageToSearch, searchResultsResponse, errorCatcher) {
     let dataBitsCacher = "";
-    pageHttpResponse.on("data", (chunk) => {
+    pageHttpResponse.on("data", (chunk) => { // Linha 48 original do erro consistent-return
         dataBitsCacher += chunk;
-        return; // Adicionado para consistent-return (linha 50 do erro original)
+        // O 'return;' foi removido daqui. A função agora retorna 'undefined' implicitamente.
     });
     pageHttpResponse.on("end", () => {
         try {
@@ -166,7 +166,7 @@ function isPlanetLargeAndPopulated(planetData, populationThreshold, diameterThre
         return false;
     }
     return Number(planetData.population) > populationThreshold &&
-           Number(planetData.diameter) > diameterThreshold;
+        Number(planetData.diameter) > diameterThreshold;
 }
 
 function printPlanetDetails(planetData) {
@@ -245,7 +245,7 @@ async function printVehicleInfo(vehicleIdSearch) {
     }
 }
 
-const args = process.argv.slice(ARGUMENT_START_INDEX);
+const args = process.argv.slice(ARGUMENT_START_INDEX); // Linha 248 original do erro no-undef
 if (args.includes("--no-debug")) {
     debug_mode = false;
 }
@@ -348,7 +348,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-const PORT = process.env.PORT || DEFAULT_PORT;
+const PORT = process.env.PORT || DEFAULT_PORT; // Linha 351 original do erro no-undef
 server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}/`);
     console.log("Open the URL in your browser and click the button to fetch Star Wars data");
